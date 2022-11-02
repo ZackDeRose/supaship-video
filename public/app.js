@@ -2,9 +2,8 @@
 
 const { createClient } = supabase;
 
-const supaUrl = "https://nsoshujdavrbnwaqryzs.supabase.co";
-const supaAnonKey =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zb3NodWpkYXZyYm53YXFyeXpzIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NjczMzg4MzMsImV4cCI6MTk4MjkxNDgzM30.Ud8BnrZZqYHp6nICL7i_6LLC1Lxd3vfDbulDvJ7oJKM";
+const supaUrl = ""; // add your url here after creating your supabase instance
+const supaAnonKey = ""; // add your key here after creating your supabase instance
 
 const supaClient = createClient(supaUrl, supaAnonKey);
 
