@@ -39,6 +39,41 @@
       <button id="signInBtn" class="btn btn-primary">
         Sign In with Google
       </button>
+      <button id="signUpWithUsername" class="btn btn-secondary">
+        Sign Up with Username and Password
+      </button>
+      <button id="signInWithUsername" class="btn btn-secondary">
+        Sign In with Username and Password
+      </button>
+      <fieldset id="signUpFieldSet" hidden="true">
+        <legend>Sign up with Username and Password</legend>
+        <form id="signUpForm">
+          <div class="mb-3">
+            <label for="signUpUsername" class="form-label">Username</label>
+            <input class="form-control" id="signUpUsername" />
+          </div>
+          <div class="mb-3">
+            <label for="signUpPassword" class="form-label">Password</label>
+            <input type="password" class="form-control" id="signUpPassword" />
+          </div>
+          <button type="submit" class="btn btn-primary">Sign Up</button>
+        </form>
+      </fieldset>
+
+      <fieldset id="signInFieldSet" hidden="true">
+        <legend>Sign In with Username and Password</legend>
+        <form id="signInForm">
+          <div class="mb-3">
+            <label for="signInUsername" class="form-label">Username</label>
+            <input class="form-control" id="signInUsername" />
+          </div>
+          <div class="mb-3">
+            <label for="signInPassword" class="form-label">Password</label>
+            <input type="password" class="form-control" id="signInPassword" />
+          </div>
+          <button type="submit" id="" class="btn btn-primary">Sign In</button>
+        </form>
+      </fieldset>
     </section>
 
     <section id="whenSignedIn" hidden="true">

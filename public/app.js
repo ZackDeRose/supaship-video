@@ -20,8 +20,42 @@ const myThingsList = document.getElementById("myThingsList");
 const allThingsSection = document.getElementById("allThings");
 const allThingsList = document.getElementById("allThingsList");
 const createThing = document.getElementById("createThing");
+const signUpWithUsername = document.getElementById("signUpWithUsername");
+const signInWithUsername = document.getElementById("signInWithUsername");
+const signUpFieldSet = document.getElementById("signUpFieldSet");
+const signInFieldSet = document.getElementById("signInFieldSet");
+const signUpForm = document.getElementById("signUpForm");
+const signInForm = document.getElementById("signInForm");
+const signInUsername = document.getElementById("signInUsername");
+const signInPassword = document.getElementById("signInPassword");
+const signUpUsername = document.getElementById("signUpUsername");
+const signUpPassword = document.getElementById("signUpPassword");
 
 // Event Listeners
+
+signInWithUsername.addEventListener("click", async () => {
+  signInFieldSet.hidden = false;
+  signUpFieldSet.hidden = true;
+});
+
+signUpWithUsername.addEventListener("click", async () => {
+  signUpFieldSet.hidden = false;
+  signInFieldSet.hidden = true;
+});
+
+signUpForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const userName = signUpUsername.value;
+  const password = signUpPassword.value;
+  await signUp(userName, password);
+});
+
+signInForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const userName = signInUsername.value;
+  const password = signInPassword.value;
+  await signIn(userName, password);
+});
 
 loginButon.addEventListener("click", () => {
   supaClient.auth.signInWithOAuth({
@@ -245,3 +279,40 @@ const trashIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16
   <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
   <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
 </svg>`;
+
+async function signUp(username, password) {
+  const email = `foo-${randomString(5)}@bar.com`;
+  const { data, error } = await supaClient.auth.signUp({
+    email,
+    password,
+  });
+  if (error) {
+    console.error(error);
+    return;
+  }
+  console.log("data", data);
+  await supaClient
+    .from("usernames")
+    .insert([{ username, userid: data.user.id }]);
+}
+
+function randomString(length) {
+  const chars =
+    "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  let result = "";
+  for (let i = length; i > 0; --i) {
+    result += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return result;
+}
+
+async function signIn(username, password) {
+  const response = await supaClient.functions.invoke("get-fake-email", {
+    body: { username },
+  });
+  console.log(response);
+  const { data, error } = await supaClient.auth.signInWithPassword({
+    email: response.data.email,
+    password,
+  });
+}
