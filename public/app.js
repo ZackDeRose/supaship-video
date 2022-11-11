@@ -290,7 +290,6 @@ async function signUp(username, password) {
     console.error(error);
     return;
   }
-  console.log("data", data);
   await supaClient
     .from("usernames")
     .insert([{ username, userid: data.user.id }]);
@@ -310,7 +309,6 @@ async function signIn(username, password) {
   const response = await supaClient.functions.invoke("get-fake-email", {
     body: { username },
   });
-  console.log(response);
   const { data, error } = await supaClient.auth.signInWithPassword({
     email: response.data.email,
     password,

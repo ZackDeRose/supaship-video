@@ -20,33 +20,24 @@ serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
-  console.log("not an options request");
-  const request = await req.json();
-  const { username } = request;
-  console.log(request);
+  const { username } = await req.json();
   const supabaseClient = createClient(
-    // Supabase API URL - env var exported by default.
     Deno.env.get("SUPABASE_URL") ?? "",
-    // Supabase API ANON KEY - env var exported by default.
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-    // Create client with Auth context of the user that called the function.
-    // This way your row-level-security (RLS) policies are applied.
   );
+
   const { data } = await supabaseClient
     .from("usernames")
     .select()
     .eq("username", username);
   if (!data || !data[0]) {
-    console.log("no user by username");
     throw new Error(`no user found with username ${username}`);
   }
   const {
     data: { user },
     error,
   } = await supabaseClient.auth.admin.getUserById(data[0].userid);
-  console.log(error);
   if (!user) {
-    console.log("no user by userid");
     throw new Error(`no fake email found`);
   }
 
