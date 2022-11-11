@@ -19,6 +19,15 @@ const myThingsList = document.getElementById("myThingsList");
 const allThingsSection = document.getElementById("allThings");
 const allThingsList = document.getElementById("allThingsList");
 const createThing = document.getElementById("createThing");
+const askForEmail = document.getElementById("askForEmail");
+const emailConfirmation = document.getElementById("emailConfirmation");
+const adminSendEmails = document.getElementById("adminSendEmails");
+const askForEmailForm = document.getElementById("askForEmailForm");
+const emailInput = document.getElementById("emailInput");
+const cancelEmailBtn = document.getElementById("cancelEmailBtn");
+const adminEmailSender = document.getElementById("adminEmailSender");
+const emailContents = document.getElementById("emailContents");
+const subjectInput = document.getElementById("subjectInput");
 
 // Event Listeners
 
@@ -40,10 +49,32 @@ logoutButton.addEventListener("click", () => {
   supaClient.auth.signOut();
 });
 
+cancelEmailBtn.addEventListener("click", async () => {
+  const emailListId = getEmailListId();
+  const { error } = await supaClient
+    .from("email_list")
+    .delete()
+    .eq("id", emailListId);
+});
+
+adminEmailSender.addEventListener("submit", async () => {
+  const contents = emailContents.value;
+  const subject = subjectInput.value;
+  await supaClient.functions.invoke("send-email", {
+    body: { subject, contents },
+  });
+});
+
 // init
 
 checkUserOnStartUp();
 let myThingsSubscription;
+let emailListSubscription;
+let submitListener;
+let emailListId;
+const getEmailListId = () => {
+  return emailListId;
+};
 const myThings = {};
 const allThings = {};
 getAllInitialThings().then(() => listenToAllThings());
@@ -79,6 +110,8 @@ async function adjustForUser(user) {
 <p>UID: ${user.id}</p>`;
   await getMyInitialThings(user);
   listenToMyThingsChanges(user);
+  listenToEmailList(user);
+  listenForSubmitEvents(user);
 }
 
 function adjustForNoUser() {
@@ -88,6 +121,10 @@ function adjustForNoUser() {
   if (myThingsSubscription) {
     myThingsSubscription.unsubscribe();
     myThingsSubscription = null;
+  }
+  if (emailListSubscription) {
+    emailListSubscription.unsubscribe();
+    emailListSubscription = null;
   }
 }
 
@@ -244,3 +281,58 @@ const trashIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16
   <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
   <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
 </svg>`;
+
+function listenForSubmitEvents(user) {
+  if (submitListener) {
+    askForEmailForm.removeEventListener("submit", submitListener);
+  }
+  const listener = async (event) => {
+    event.preventDefault();
+    const email = emailInput.value;
+    await supaClient.from("email_list").insert([{ email, user_id: user.id }]);
+  };
+  askForEmailForm.addEventListener("submit", listener);
+  submitListener = listener;
+}
+
+async function listenToEmailList(user) {
+  const { data, error } = await supaClient
+    .from("email_list")
+    .select("*")
+    .eq("user_id", user.id);
+  adjustUiForEmailState(user, data[0]);
+  emailListSubscription = supaClient
+    .channel(`public:email_list`)
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "email_list",
+      },
+      (event) => {
+        adjustUiForEmailState(user, event.new);
+      }
+    )
+    .subscribe();
+}
+
+function adjustUiForEmailState(user, emailListRecord) {
+  if (user.id === ADMIN_UID) {
+    askForEmail.hidden = true;
+    emailConfirmation.hidden = true;
+    adminSendEmails.hidden = false;
+    return;
+  }
+  const emailListRecordExists = () => emailListRecord && emailListRecord.id;
+  if (emailListRecordExists()) {
+    askForEmail.hidden = true;
+    emailConfirmation.hidden = false;
+    adminSendEmails.hidden = true;
+    emailListId = emailListRecord.id;
+  } else {
+    askForEmail.hidden = false;
+    emailConfirmation.hidden = true;
+    adminSendEmails.hidden = true;
+  }
+}
