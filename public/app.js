@@ -9,7 +9,7 @@ const supaClient = createClient(supaUrl, supaAnonKey);
 
 // html elements
 
-const loginButon = document.getElementById("signInBtn");
+const loginButton = document.getElementById("signInBtn");
 const logoutButton = document.getElementById("signOutBtn");
 const whenSignedIn = document.getElementById("whenSignedIn");
 const whenSignedOut = document.getElementById("whenSignedOut");
