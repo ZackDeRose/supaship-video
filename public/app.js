@@ -261,7 +261,6 @@ function renderMyThings() {
 </table>`;
   myThingsList.innerHTML = table;
 }
-6;
 
 function deleteButtonTemplate(thing) {
   return `
